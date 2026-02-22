@@ -1,43 +1,59 @@
-/open ./../src/script/webgraph_ranking/graph_explore_load_graph.jsh
-
+import java.io.BufferedWriter;
+import java.io.FileWriter;
+import java.io.IOException;
+import java.util.stream.Collectors;
 import it.unimi.dsi.webgraph.NodeIterator;
 import org.commoncrawl.webgraph.explore.Graph;
 
-
 System.out.println("Graph loaded");
 
-String outputPath = System.getProperty("path")
-System.out.println("Output path: " + outputPath)
+String outputPath = System.getProperty("path");
+System.out.println("Domains output path: " + outputPath);
 
-String tld = System.getProperty("tld")
-System.out.println("TLD: " + tld)
+String linkPath = System.getProperty("linkpath");
+System.out.println("Links output path: " + linkPath);
+
+String tld = System.getProperty("tld");
+System.out.println("TLD: " + tld);
 
 // First .cz domain cz.0 at id 71998781
 NodeIterator iterator = g.graph.nodeIterator(71998781);
 
-try (BufferedWriter writer = new BufferedWriter(new FileWriter(outputPath))) {
+try (BufferedWriter domainWriter = new BufferedWriter(new FileWriter(outputPath))) {
+    domainWriter.write("domain");
+    domainWriter.newLine();
 
-    while (iterator.hasNext()) {
-        int node = iterator.nextInt();
-        String reversedDomain = g.vertexIdToLabel(node);
-        
-        if(!reversedDomain.startsWith(tld + ".")){
-            break;
+    try (BufferedWriter linkWriter = new BufferedWriter(new FileWriter(linkPath))) {
+        linkWriter.write("source,target");
+        linkWriter.newLine();
+
+        while (iterator.hasNext()) {
+            int node = iterator.nextInt();
+            String reversedDomain = g.vertexIdToLabel(node);
+            
+            if(!reversedDomain.startsWith(tld + ".")){
+                break;
+            }
+
+            String domain = Graph.reverseDomainName(reversedDomain);
+
+            System.out.println(domain);
+
+            for (String successor : g.successorStream(reversedDomain)
+                         .map(Graph::reverseDomainName)
+                         .toList()) {
+                linkWriter.write(domain + "," + successor);
+                linkWriter.newLine();
+            }
+
+            // Write everything on one line
+            domainWriter.write(domain);
+            domainWriter.newLine();
+            
         }
 
-        String domain = Graph.reverseDomainName(reversedDomain);
-
-        System.out.println(domain);
-
-        // Collect successors into one comma-separated string
-        String successors = g.successorStream(reversedDomain)
-                                .map(d -> Graph.reverseDomainName(d))
-                                .collect(Collectors.joining(" "));
-
-        // Write everything on one line
-        writer.write(domain + "; " + successors);
-        writer.newLine();
-        
+    } catch (IOException e) {
+        e.printStackTrace();
     }
 
 } catch (IOException e) {
