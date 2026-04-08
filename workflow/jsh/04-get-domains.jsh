@@ -10,6 +10,9 @@ System.out.println("Graph loaded");
 String outputPath = System.getProperty("path");
 System.out.println("Domains output path: " + outputPath);
 
+String linkingPath = System.getProperty("linkingpath");
+System.out.println("Linking output path: " + linkingPath);
+
 String linkPath = System.getProperty("linkpath");
 System.out.println("Links output path: " + linkPath);
 
@@ -23,33 +26,47 @@ try (BufferedWriter domainWriter = new BufferedWriter(new FileWriter(outputPath)
     domainWriter.write("domain");
     domainWriter.newLine();
 
-    try (BufferedWriter linkWriter = new BufferedWriter(new FileWriter(linkPath))) {
-        linkWriter.write("source,target");
-        linkWriter.newLine();
+    try (BufferedWriter linkingWriter = new BufferedWriter(new FileWriter(linkingPath))) {
 
-        while (iterator.hasNext()) {
-            int node = iterator.nextInt();
-            String reversedDomain = g.vertexIdToLabel(node);
-            
-            if(!reversedDomain.startsWith(tld + ".")){
-                break;
+        try (BufferedWriter linkWriter = new BufferedWriter(new FileWriter(linkPath))) {
+            linkWriter.write("source,target");
+            linkWriter.newLine();
+
+            while (iterator.hasNext()) {
+                int node = iterator.nextInt();
+                String reversedDomain = g.vertexIdToLabel(node);
+                
+                if(!reversedDomain.startsWith(tld + ".")){
+                    break;
+                }
+
+                String domain = Graph.reverseDomainName(reversedDomain);
+
+                System.out.println(domain);
+
+                boolean hasLinks = false;
+
+                for (String successor : g.successorStream(reversedDomain)
+                            .map(Graph::reverseDomainName)
+                            .toList()) {
+                    hasLinks = true;
+                    linkWriter.write(domain + "," + successor);
+                    linkWriter.newLine();
+                }
+
+                if(hasLinks){
+                    linkingWriter.write(domain);
+                    linkingWriter.newLine();
+                }
+
+                // Write everything on one line
+                domainWriter.write(domain);
+                domainWriter.newLine();
+                
             }
 
-            String domain = Graph.reverseDomainName(reversedDomain);
-
-            System.out.println(domain);
-
-            for (String successor : g.successorStream(reversedDomain)
-                         .map(Graph::reverseDomainName)
-                         .toList()) {
-                linkWriter.write(domain + "," + successor);
-                linkWriter.newLine();
-            }
-
-            // Write everything on one line
-            domainWriter.write(domain);
-            domainWriter.newLine();
-            
+        } catch (IOException e) {
+            e.printStackTrace();
         }
 
     } catch (IOException e) {
@@ -61,4 +78,3 @@ try (BufferedWriter domainWriter = new BufferedWriter(new FileWriter(outputPath)
 }
 
 /exit
-
