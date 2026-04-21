@@ -69,6 +69,29 @@ The Common Crawl webgraph data sets are announced on the [Common Crawl web site]
 For instructions how to explore the webgraphs using the JShell please see the tutorial [Interactive Graph Exploration](./graph-exploration-README.md). For an older approach using [Jython](https://www.jython.org/) and [pyWebGraph](https://github.com/mapio/py-web-graph), see the [cc-notebooks project](//github.com/commoncrawl/cc-notebooks/tree/master/cc-webgraph-statistics).
 
 
+## Extracting .cz Domains from Common Crawl (Fork Addition)
+
+> **Note:** This section describes scripts added in this fork and are not part of the original [cc-webgraph](https://github.com/commoncrawl/cc-webgraph) repository.
+
+The [workflow/](workflow/) directory contains a set of shell scripts to extract `.cz` domain data and their links from a Common Crawl web graph into CSV files. Run them in order:
+
+```sh
+sh ./workflow/00-env.sh
+sh ./workflow/01-build-project.sh
+sh ./workflow/02-download-graph.sh
+sh ./workflow/03-build-vertex-map.sh
+sh ./workflow/04-get-cz-domains.sh
+```
+
+| Script | Description |
+|---|---|
+| [00-env.sh](workflow/00-env.sh) | Sets up environment variables used by subsequent scripts |
+| [01-build-project.sh](workflow/01-build-project.sh) | Builds the Maven projects |
+| [02-download-graph.sh](workflow/02-download-graph.sh) | Downloads the appropriate web graph from Common Crawl |
+| [03-build-vertex-map.sh](workflow/03-build-vertex-map.sh) | Builds the vertex map from the downloaded graph |
+| [04-get-cz-domains.sh](workflow/04-get-cz-domains.sh) | Extracts `.cz` domains and their links into CSV files |
+
+
 ## Credits
 
 Thanks to the authors of the [WebGraph framework](https://webgraph.di.unimi.it/) used to process the graphs and compute page rank and harmonic centrality. See also Sebastiano Vigna's projects [webgraph](//github.com/vigna/webgraph) and [webgraph-big](//github.com/vigna/webgraph-big).
